@@ -16,7 +16,7 @@ class CubeRender:
         self.world_width = 10
         self.world_height = 10
         self.objects = [[[0 for x in range(self.world_length)] for y in range(self.world_width)] for z in range(self.world_height)]
-        self.totally_random_heights = [1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 3]
+        self.totally_random_heights = [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 3]
         self.create_3d_objects()
 
     def create_3d_objects(self):
