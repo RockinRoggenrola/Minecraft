@@ -2,6 +2,7 @@ from object_3d import *
 from camera import *
 from projection import *
 import pygame as pg
+import random
 
 class CubeRender:
     def __init__(self):
@@ -13,7 +14,9 @@ class CubeRender:
         self.clock= pg.time.Clock()
         self.world_length = 10 
         self.world_width = 10
-        self.objects = [[0 for x in range(self.world_length)] for y in range(self.world_width)] 
+        self.world_height = 10
+        self.objects = [[[0 for x in range(self.world_length)] for y in range(self.world_width)] for z in range(self.world_height)]
+        self.totally_random_heights = [1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 3]
         self.create_3d_objects()
 
     def create_3d_objects(self):
@@ -21,15 +24,19 @@ class CubeRender:
         self.projection = Projection(self)
         for i in range(self.world_length):
             for j in range(self.world_width):
-                self.objects[i][j] = Object3D(self)
-                self.objects[i][j].translate([i, 0, j])
-                self.objects[i][j].scale(0.5)
+                self.rand_height = random.choice(self.totally_random_heights)
+                for k in range(self.rand_height):
+                    self.objects[i][j][k] = Object3D(self)
+                    self.objects[i][j][k].translate([i, k-1, j])
+                    self.objects[i][j][k].scale(0.1)
 
     def draw(self):
         self.screen.fill(pg.Color('paleturquoise1'))
         for i in range(self.world_length):
             for j in range(self.world_width):
-                self.objects[i][j].draw()
+                for k in range(self.world_height):
+                    if self.objects[i][j][k] != 0:
+                        self.objects[i][j][k].draw()
     
     def run(self):
         while True:
