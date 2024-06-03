@@ -41,4 +41,9 @@ while True:
     pygame.display.update()
     clock.tick(60)
     screen.blit(sky, (0, 0))
-    
+
+from object_3d import *
+from camera import *
+from projection import *
+import pygame as pg
+import random
