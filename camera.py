@@ -1,85 +1,95 @@
-import pygame as pg
-from matrices import *
+import numpy
+import math
+from setup import *
 
 class Camera:
-    def __init__(self, render, position):
-        self.render = render
-        self.position = np.array([*position, 1.0])
-        # orientation vectors
-        self.forward = np.array([0, 0, 1, 1]) 
-        self.up = np.array([0, 1, 0, 1])
-        self.right = np.array([1, 0, 0, 1]) 
-        self.h_fov = math.pi / 3
-        self.v_fov = self.h_fov * (render.HEIGHT / render.WIDTH)
-        self.near_plane = 0.1
-        self.far_plane = 100
-        self.moving_speed = 0.03
-        self.rotation_speed = 0.02
+    def __init__(self, pos, dir, near, far, fov):
+        self.pos = numpy.array(pos)
+        n = math.sqrt(sum(dir*dir))
+        self.direction = numpy.array(dir/n)
+        self.near = near
+        self.far = far
+        self.dir = dir / math.sqrt(sum(dir**2))
+        self.fov = fov * math.pi / 180
 
-    def control(self):
-        key = pg.key.get_pressed()
-        if key[pg.K_a]:
-            self.position -= self.right * self.moving_speed # move left
-        if key[pg.K_d]:
-            self.position += self.right * self.moving_speed # move right
-        if key[pg.K_w]:
-            self.position += self.forward * self.moving_speed # move forward
-        if key[pg.K_s]:
-            self.position -= self.forward * self.moving_speed # move back
-        if key[pg.K_SPACE]:
-            self.position += self.up * self.moving_speed # move up
-        if key[pg.K_LSHIFT]:
-            self.position -= self.up * self.moving_speed # move down 
+    def move_up(self):
+        self.pos[0] += 0.3
+    
+    def move_down(self):
+        self.pos[0] -= 0.3
+    
+    def move_right(self):
+        self.pos[1] += 0.3
+    
+    def move_left(self):
+        self.pos[1] -= 0.3
+
+    def project_to_near(self, point):
+        lambda_ = self.near*sum(self.dir*self.dir) / (sum((point-self.pos)*self.dir))
+        return lambda_ * numpy.array(point) + (1-lambda_) * self.pos
+    
+    def return_tilt_x(self, angle):
+        x, y, z = self.dir
+        h = math.sqrt(x*x + y*y + z*z)
+        j = math.sqrt(y*y + z*z)
+        self_angle = math.acos(j/h)
+        a = h * math.cos(angle+self_angle) / j
+        b = h * math.sin(angle+self_angle) / x
+        n = math.sqrt(2*a*a + b*b)
+        return numpy.array(x*b/n, y*a/n, z*a/n)
+    
+    def return_tilt_y(self, angle):
+        x, y, z = self.dir
+        h = math.sqrt(x*x + y*y + z*z)
+        j = math.sqrt(x*x + z*z)
+        self_angle = math.acos(j/h)
+        a = h * math.cos(angle+self_angle) / j
+        b = h * math.sin(angle+self_angle) / y
+        n = math.sqrt(2*a*a + b*b)
+        return numpy.array(x*a/n, y*b/n, z*a/n)
+
+    def return_tilt_z(self, angle):
+        x, y, z = self.dir
+        h = math.sqrt(x*x + y*y + z*z)
+        j = math.sqrt(x*x + y*y)
+        self_angle = math.acos(j/h)
+        a = h * math.cos(angle+self_angle) / j
+        b = h * math.sin(angle+self_angle) / z
+        n = math.sqrt(2*a*a + b*b)
+        return numpy.array((x*a/n, y*a/n, z*b/n))
+    
+    def tilt_x(self, angle):
+        self.dir = self.return_tilt_x(angle)
+
+    def tilt_y(self, angle):
+        self.dir = self.return_tilt_y(angle)
+
+    def tilt_z(self, angle):
+        self.dir = self.return_tilt_z(angle)
+
+    def near_plane(self): # order: T, R, B, L (clockwise)
+        tilt_z1 = self.return_tilt_z(self.fov/2)
+        tilt_z2 = self.return_tilt_z(-1*self.fov/2)
+        center_to_right = (self.near/math.cos(self.fov/2))*tilt_z1
+        center_to_left = -1*center_to_right
+        center_to_top = numpy.cross(self.dir, center_to_right) * height / width
+        center_to_bottom = -1*center_to_top
+
+        # these are vectors from the center of the near plane to each of the edges
+        new_dirs = [center_to_top, center_to_right, center_to_bottom, center_to_left]
+        return new_dirs
+
+    def make_projection_matrix(self):
+        near_plane = self.near_plane()
+        return numpy.linalg.inv(numpy.array([near_plane[1].tolist(), near_plane[0].tolist(), self.dir.tolist()]))
+
+    def project_to_2d(self, point, projection_matrix):
+        near_plane_projection = self.project_to_near(point) - self.pos - self.near * self.dir
+        return projection_matrix @ near_plane_projection
+    
+    def convert_to_pygame(self, coords):
+        print(coords)
+        return (width/2 + coords[0]*width/2, height/2 + coords[1]*height/2)
+
+
         
-        starting_x, starting_y = pg.mouse.get_pos()
-        delta_x, delta_y = pg.mouse.get_rel()
-        if delta_x < 0 and delta_y == 0:
-            self.camera_rotate_y(-self.rotation_speed)
-        if delta_x > 0 and delta_y == 0:
-            self.camera_rotate_y(self.rotation_speed)
-        if delta_y < 0 and delta_x == 0:
-            self.camera_rotate_x(-self.rotation_speed)
-        if delta_y > 0 and delta_x == 0:
-            self.camera_rotate_x(self.rotation_speed)
-
-    def camera_rotate_x(self, angle):
-        rotate = rotate_x(angle)
-        self.forward = self.forward @ rotate
-        self.right = self.right @ rotate
-        self.up= self.up @ rotate
-
-    def camera_rotate_y(self, angle):
-        rotate = rotate_y(angle)
-        self.forward = self.forward @ rotate
-        self.right = self.right @ rotate
-        self.up= self.up @ rotate
-
-    
-
-
-    # translate camera so that its at the origin
-    def translate_matrix(self):
-        x, y, z, w = self.position
-        return np.array([
-            [1, 0, 0, 0], 
-            [0, 1, 0, 0], 
-            [0, 0, 1, 0], 
-            [-x, -y, -z, 1]
-        ])
-    
-    # rotate camera so orientation is same as x, y, z, axis
-    def rotate_matrix(self):
-        rx, ry, rz, w = self.right
-        fx, fy, fz, w = self.forward
-        ux, uy, uz, w = self.up
-        return np.array([
-            [rx, ux, fx, 0],
-            [ry, uy, fy, 0],
-            [rz, uz, fz, 0],
-            [0, 0, 0, 1]
-        ])
-    
-    def camera_matrix(self):
-        return self.translate_matrix() @ self.rotate_matrix()
-    
-

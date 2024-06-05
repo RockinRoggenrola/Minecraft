@@ -1,49 +1,31 @@
-import math
 import pygame
+import math
+import numpy
+from setup import *
+from Cube import Cube
+from Camera import Camera
 
 pygame.init()
-WIDTH = 1000
-HEIGHT = 500
-BLOCK_SIZE = 20
-player_x = 0
-player_y = 1.7
-player_z = 0
-
-screen = pygame.display.set_mode((WIDTH, HEIGHT))
+screen = pygame.display.set_mode((width, height))
 clock = pygame.time.Clock()
-sky = pygame.image.load('sky.jpg')
-sky = pygame.transform.scale(sky, (WIDTH, HEIGHT))
-grayblock = pygame.image.load('grayblock.jpg')
-grayblock = pygame.transform.scale(grayblock, (BLOCK_SIZE, BLOCK_SIZE))
 
-blocks = [[0 for i in range(100)] for i in range(100)]
+cube = Cube(2, 1, 4, (255, 0, 0))
+player = Camera((0, 0, 1.7), numpy.array((1, 1, 1)), 0.1, 50, 45)
 
 while True:
+    clock.tick(fps)
+
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             pygame.quit()
-            exit()
-        if event.type == pygame.MOUSEBUTTONUP:
-            pos = pygame.mouse.get_pos()
-            x = math.ceil(pos[0]/BLOCK_SIZE)-1
-            y = math.ceil((HEIGHT-pos[1])/BLOCK_SIZE)-1
-            blocks[x][y] = 1
-    
-    rectangles = []
-    for i in range(len(blocks)):
-        for j in range(len(blocks[i])):
-            if blocks[i][j] == 1:
-                block = blocks[i][j]
-                blocksurf = grayblock.get_rect(topleft = (BLOCK_SIZE*(i), BLOCK_SIZE*(HEIGHT//BLOCK_SIZE-j-1)))
-                screen.blit(grayblock, blocksurf)
-                rectangles.append(blocksurf)
+            break
+
+    RED = (255, 0, 0)
+    for vertex in cube.vertices():
+        projection_matrix = player.make_projection_matrix()
+        twoD_coords = player.project_to_2d(vertex, projection_matrix)
+        pygame_coords = player.convert_to_pygame(twoD_coords)
+        pygame.draw.circle(screen, RED, pygame_coords, 3)
+
 
     pygame.display.update()
-    clock.tick(60)
-    screen.blit(sky, (0, 0))
-
-from object_3d import *
-from camera import *
-from projection import *
-import pygame as pg
-import random
