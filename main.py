@@ -6,11 +6,9 @@ from Cube import Cube
 from Camera import Camera
 
 pygame.init()
-screen = pygame.display.set_mode((width, height))
-clock = pygame.time.Clock()
 
 cube = Cube(2, 1, 4, (255, 0, 0))
-player = Camera((0, 0, 1.7), numpy.array((1, 1, 1)), 0.1, 50, 45)
+player = Camera((1, 0, 1.7), numpy.array((1, 1, 1)), 0.1, 50, 45)
 
 while True:
     clock.tick(fps)
@@ -20,12 +18,17 @@ while True:
             pygame.quit()
             break
 
-    RED = (255, 0, 0)
-    for vertex in cube.vertices():
-        projection_matrix = player.make_projection_matrix()
-        twoD_coords = player.project_to_2d(vertex, projection_matrix)
-        pygame_coords = player.convert_to_pygame(twoD_coords)
-        pygame.draw.circle(screen, RED, pygame_coords, 3)
+    keys = pygame.key.get_pressed()
+    if keys[pygame.K_RIGHT]:
+        player.move_right()
+    if keys[pygame.K_LEFT]:
+        player.move_left()
+    if keys[pygame.K_UP]:
+        player.move_up()
+    if keys[pygame.K_DOWN]:
+        player.move_down()
 
 
+    screen.fill((0, 0, 0))
+    player.render_cube(cube)
     pygame.display.update()

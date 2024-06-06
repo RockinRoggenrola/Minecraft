@@ -13,16 +13,17 @@ class Camera:
         self.fov = fov * math.pi / 180
 
     def move_up(self):
-        self.pos[0] += 0.3
+        self.pos[0] += 0.1
     
     def move_down(self):
-        self.pos[0] -= 0.3
+        self.pos[0] -= 0.1
     
     def move_right(self):
-        self.pos[1] += 0.3
+        self.pos[1] += 0.1
+        print(self.pos)
     
     def move_left(self):
-        self.pos[1] -= 0.3
+        self.pos[1] -= 0.1
 
     def project_to_near(self, point):
         lambda_ = self.near*sum(self.dir*self.dir) / (sum((point-self.pos)*self.dir))
@@ -88,8 +89,17 @@ class Camera:
         return projection_matrix @ near_plane_projection
     
     def convert_to_pygame(self, coords):
-        print(coords)
         return (width/2 + coords[0]*width/2, height/2 + coords[1]*height/2)
 
+    def render_cube(self, cube):
+        projected_coords = []
+        for vertex in cube.vertices():
+            projection_matrix = self.make_projection_matrix()
+            twoD_coords = self.project_to_2d(vertex, projection_matrix)
+            pygame_coords = self.convert_to_pygame(twoD_coords)
+            projected_coords.append(pygame_coords)
+            pygame.draw.circle(screen, RED, pygame_coords, 3)
+        for edge in cube.edges():
+            pygame.draw.line(screen, RED, projected_coords[edge[0]], projected_coords[edge[1]], 1)
 
         
