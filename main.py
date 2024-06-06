@@ -1,14 +1,17 @@
 import pygame
 import math
 import numpy
+import random
 from setup import *
 from Cube import Cube
 from Camera import Camera
 
 pygame.init()
 
-cube = Cube(2, 1, 4, (255, 0, 0))
-player = Camera((1, 0, 1.7), numpy.array((1, 1, 1)), 0.1, 50, 45)
+cubes = []
+for i in range(10):
+    cubes.append(Cube(random.randint(1, 10), random.randint(1, 10), random.randint(1, 10), (255, 0, 0)))
+player = Camera((1, 0, 1.7), numpy.array((1, 1, 1)), 1.5, 50, 45)
 
 while True:
     clock.tick(fps)
@@ -30,5 +33,6 @@ while True:
 
 
     screen.fill((0, 0, 0))
-    player.render_cube(cube)
+    for cube in cubes:
+        player.render_cube(cube)
     pygame.display.update()
