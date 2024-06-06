@@ -18,7 +18,7 @@ class Block:
         self.shader_program = self.shaders('default')
         self.vao = self.vertex_array_object()
         self.texture = self.texture()
-        self.camera = Camera(main.WIND_SIZE[0] / main.WIND_SIZE[1])
+        self.camera = Camera(main)
         self.model_matrix = glm.mat4(1.0)
         self.shader_program['model_matrix'].write(self.model_matrix)
         self.shader_program['view_matrix'].write(self.camera.view_matrix)
@@ -94,6 +94,8 @@ class Block:
     def update(self):
         model_matrix = glm.rotate(self.model_matrix, self.main.time, glm.vec3(0, 1, 0))
         self.shader_program['model_matrix'].write(model_matrix)
+        self.camera.move()
+        self.shader_program['view_matrix'].write(self.camera.view_matrix)
         
     def render(self):
         self.update()

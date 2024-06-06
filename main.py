@@ -18,10 +18,11 @@ class Minecraft:
 
         # detect the context we made and use it
         self.context = mgl.create_context()
-        self.context.enable(mgl.DEPTH_TEST | mgl.CULL_FACE | mgl.BLEND)
+        self.context.enable(mgl.DEPTH_TEST | mgl.CULL_FACE)
 
         self.clock = pg.time.Clock()
         self.time = 0
+        self.delta_time = 0
         self.world = Block(self)
 
     def render(self):
@@ -42,7 +43,7 @@ class Minecraft:
                 #     x, y = pg.mouse.get_pos()
                 #     print(x, y)
             self.render()
-            self.clock.tick(60)
+            self.delta_time = self.clock.tick(60) * 0.001
             self.time = pg.time.get_ticks() * 0.001
 
 if __name__ == '__main__':

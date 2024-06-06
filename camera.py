@@ -1,16 +1,42 @@
-import numpy
-import math
 import glm
+import pygame as pg
 
 class Camera:
-    def __init__(self, aspect_ratio):
+    def __init__(self, main):
+        self.main = main
         self.FOV = 45
+        self.aspect_ratio = main.WIND_SIZE[0] / main.WIND_SIZE[1]
         self.NEAR_PLANE = 0.1
         self.FAR_PLANE = 100
-        self.pos = glm.vec3(2, 3, 3)
-        self.view_matrix = glm.lookAt(self.pos, glm.vec3(0, 0, 0), glm.vec3(0, 1, 0))
-        self.proj_matrix = glm.perspective(glm.radians(self.FOV), aspect_ratio, self.NEAR_PLANE, self.FAR_PLANE)
+        self.pos = glm.vec3(0, 0, 3)
+        
+        # vectors for camera movements
+        self.up = glm.vec3(0, 1, 0)
+        self.right = glm.vec3(1, 0, 0)
+        self.forward = glm.vec3(0, 0 ,-1) # positive z axis is towards you
+        self.movement_speed = 10
 
+        self.view_matrix = glm.lookAt(self.pos, glm.vec3(0, 0, 0), self.up)
+        self.proj_matrix = glm.perspective(glm.radians(self.FOV), self.aspect_ratio, self.NEAR_PLANE, self.FAR_PLANE)
+    
+    def move(self):
+        camera_speed = self.movement_speed * self.main.delta_time
+        keys = pg.key.get_pressed()
+        if keys[pg.K_w]:
+            self.pos += self.forward * camera_speed
+        if keys[pg.K_a]:
+            self.pos -= self.right * camera_speed
+        if keys[pg.K_s]:
+            self.pos -= self.forward * camera_speed
+        if keys[pg.K_d]:
+            self.pos += self.right * camera_speed
+        if keys[pg.K_SPACE]:
+            self.pos += self.up * camera_speed
+        if keys[pg.K_LSHIFT]:
+            self.pos -= self.up * camera_speed
+        
+        self.view_matrix = glm.lookAt(self.pos, self.pos + self.forward, self.up)
+        
     # def move_up(self):
     #     self.pos[1] += 0.1
     
