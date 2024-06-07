@@ -1,7 +1,7 @@
 import pygame as pg
 import moderngl as mgl
 import sys # system modules
-from blocks import *
+from cubes import *
 
 class Minecraft:
     def __init__(self):
@@ -25,7 +25,7 @@ class Minecraft:
         self.clock = pg.time.Clock()
         self.time = 0
         self.delta_time = 0
-        self.world = Block(self)
+        self.world = Cubes(self)
 
     def render(self):
         # clear framebuffer (a collection of buffers used as the rendering destination)

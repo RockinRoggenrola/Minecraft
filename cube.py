@@ -1,12 +1,12 @@
 import numpy as np
 import pygame as pg
 import glm
-from camera import Camera
 
-class Block:
-    def __init__(self, main):
+class Cube:
+    def __init__(self, texture_name, main, pos):
         self.main = main
         self.context = main.context
+        self.texture_name = texture_name
         # openGL rendering pipline: pipline recieves info about the vertices, 
         # vertice shader processes each vertice. Vertices passed to primitive assembly, 
         # where assembly is carried out based on vertex connectivity info (what vertex 
@@ -18,11 +18,11 @@ class Block:
         self.shader_program = self.shaders('default')
         self.vao = self.vertex_array_object()
         self.texture = self.texture()
-        self.camera = Camera(main)
-        self.model_matrix = glm.mat4(1.0)
+    
+        self.pos = pos
+        self.model_matrix = self.model_matrix()
         self.shader_program['model_matrix'].write(self.model_matrix)
-        self.shader_program['view_matrix'].write(self.camera.view_matrix)
-        self.shader_program['proj_matrix'].write(self.camera.proj_matrix) # pass in the parameter proj_matrix with the value of the camera proj_matrix
+        
         self.shader_program['block_texture'] = 0
         self.texture.use()
         
@@ -86,25 +86,32 @@ class Block:
         return vao
     
     def texture(self):
-        texture = pg.image.load('JAMES_DILLON.png').convert()
+        texture_path = 'textures/{texture_name}.png'
+        texture_path = texture_path.format(texture_name = self.texture_name)
+        texture = pg.image.load(texture_path).convert()
+        # texture.fill('red')
         texture = pg.transform.flip(texture, False, True)
         texture = self.context.texture(texture.get_size(), 3, pg.image.tobytes(texture, 'RGB'))
         return texture
 
+    def model_matrix(self):
+        model_matrix = glm.mat4(1.0)
+        model_matrix = glm.translate(model_matrix, self.pos)
+        return model_matrix
+
     def update(self):
-        # model_matrix = glm.rotate(self.model_matrix, self.main.time, glm.vec3(0, 1, 0))
-        # self.shader_program['model_matrix'].write(model_matrix)
-        self.camera.update()
-        self.shader_program['view_matrix'].write(self.camera.view_matrix)
+        # model_matrix = glm.rotate(self.model_matrix, self.cubes.time, glm.vec3(0, 1, 0))
+        self.shader_program['model_matrix'].write(self.model_matrix)
         
     def render(self):
         self.update()
-        self.vao.render()   
+        self.vao.render()
     
     def clear(self): # remove all created resources
         self.vbo.release()
         self.shader_program.release()
         self.vao.release()
+        self.texture.release()
 
 
 

@@ -8,14 +8,14 @@ class Camera:
         self.ASPECT_RATIO = main.WIND_SIZE[0] / main.WIND_SIZE[1]
         self.NEAR_PLANE = 0.1
         self.FAR_PLANE = 100
-        self.SENSITIVITY = 0.3
+        self.SENSITIVITY = 0.5
         self.pos = glm.vec3(2, 2, 3)
         
         # vectors for camera movements
         self.up = glm.vec3(0, 1, 0)
         self.right = glm.vec3(1, 0, 0)
         self.forward = glm.vec3(0, 0 ,-1) # positive z axis is towards you
-        self.movement_speed = 10
+        self.movement_speed = 20
 
         self.yaw = 0
         self.pitch = 0
@@ -38,7 +38,6 @@ class Camera:
             self.pos += self.up * camera_speed
         if keys[pg.K_LSHIFT]:
             self.pos -= self.up * camera_speed
-
         self.view_matrix = glm.lookAt(self.pos, self.pos + self.forward, self.up)
     
     def rotate(self):
