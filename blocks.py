@@ -86,14 +86,14 @@ class Block:
         return vao
     
     def texture(self):
-        texture = pg.image.load('deepslate_bricks.webp').convert()
+        texture = pg.image.load('JAMES_DILLON.png').convert()
         texture = pg.transform.flip(texture, False, True)
         texture = self.context.texture(texture.get_size(), 3, pg.image.tobytes(texture, 'RGB'))
         return texture
 
     def update(self):
-        model_matrix = glm.rotate(self.model_matrix, self.main.time, glm.vec3(0, 1, 0))
-        self.shader_program['model_matrix'].write(model_matrix)
+        # model_matrix = glm.rotate(self.model_matrix, self.main.time, glm.vec3(0, 1, 0))
+        # self.shader_program['model_matrix'].write(model_matrix)
         self.camera.update()
         self.shader_program['view_matrix'].write(self.camera.view_matrix)
         

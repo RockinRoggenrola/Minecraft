@@ -60,7 +60,7 @@ class Camera:
         direction.x = glm.cos(yaw) * glm.cos(pitch)
         direction.y = glm.sin(pitch)
         direction.z = glm.sin(yaw) * glm.cos(pitch)
-        self.forward = glm.normalize(direction)
+        self.forward = glm.normalize(direction) 
         self.right = glm.normalize(glm.cross(self.forward, glm.vec3(0, 1, 0)))
         self.up = glm.normalize(glm.cross(self.right, self.forward))
 
