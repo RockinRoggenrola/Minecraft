@@ -5,10 +5,11 @@ class Camera:
     def __init__(self, main):
         self.main = main
         self.FOV = 45
-        self.aspect_ratio = main.WIND_SIZE[0] / main.WIND_SIZE[1]
+        self.ASPECT_RATIO = main.WIND_SIZE[0] / main.WIND_SIZE[1]
         self.NEAR_PLANE = 0.1
         self.FAR_PLANE = 100
-        self.pos = glm.vec3(0, 0, 3)
+        self.SENSITIVITY = 0.3
+        self.pos = glm.vec3(2, 2, 3)
         
         # vectors for camera movements
         self.up = glm.vec3(0, 1, 0)
@@ -16,8 +17,11 @@ class Camera:
         self.forward = glm.vec3(0, 0 ,-1) # positive z axis is towards you
         self.movement_speed = 10
 
+        self.yaw = 0
+        self.pitch = 0
+
         self.view_matrix = glm.lookAt(self.pos, glm.vec3(0, 0, 0), self.up)
-        self.proj_matrix = glm.perspective(glm.radians(self.FOV), self.aspect_ratio, self.NEAR_PLANE, self.FAR_PLANE)
+        self.proj_matrix = glm.perspective(glm.radians(self.FOV), self.ASPECT_RATIO, self.NEAR_PLANE, self.FAR_PLANE)
     
     def move(self):
         camera_speed = self.movement_speed * self.main.delta_time
@@ -34,8 +38,41 @@ class Camera:
             self.pos += self.up * camera_speed
         if keys[pg.K_LSHIFT]:
             self.pos -= self.up * camera_speed
-        
+
         self.view_matrix = glm.lookAt(self.pos, self.pos + self.forward, self.up)
+    
+    def rotate(self):
+        delta_x, delta_y = pg.mouse.get_rel()
+        self.yaw += delta_x * self.SENSITIVITY
+        self.pitch -= delta_y * self.SENSITIVITY
+        if self.pitch > 89:
+            self.pitch = 89
+        if self.pitch < -89:
+            self.pitch = -89
+
+    def update(self):
+        self.move()
+        self.rotate()
+
+        yaw = glm.radians(self.yaw)
+        pitch = glm.radians(self.pitch)
+        direction = glm.vec3(0,0,0)
+        direction.x = glm.cos(yaw) * glm.cos(pitch)
+        direction.y = glm.sin(pitch)
+        direction.z = glm.sin(yaw) * glm.cos(pitch)
+        self.forward = glm.normalize(direction)
+        self.right = glm.normalize(glm.cross(self.forward, glm.vec3(0, 1, 0)))
+        self.up = glm.normalize(glm.cross(self.right, self.forward))
+
+
+        self.view_matrix = glm.lookAt(self.pos, self.pos + self.forward, self.up)
+
+
+
+
+
+
+
         
     # def move_up(self):
     #     self.pos[1] += 0.1
