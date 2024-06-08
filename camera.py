@@ -7,9 +7,9 @@ class Camera:
         self.FOV = 45
         self.ASPECT_RATIO = main.WIND_SIZE[0] / main.WIND_SIZE[1]
         self.NEAR_PLANE = 0.1
-        self.FAR_PLANE = 100
+        self.FAR_PLANE = 50
         self.SENSITIVITY = 0.5
-        self.pos = glm.vec3(2, 2, 3)
+        self.pos = glm.vec3(0, 2.5, 0)
         self.jump_sequence = 0
         
         # vectors for camera movements
@@ -19,7 +19,7 @@ class Camera:
         self.chest_up = glm.vec3(0, 0, 0)
         self.chest_right = glm.vec3(1, 0, 0)
         self.chest_forward = glm.vec3(0, 0, -1)
-        self.movement_speed = 20
+        self.movement_speed = 4.317
 
         self.yaw = 0
         self.pitch = 0

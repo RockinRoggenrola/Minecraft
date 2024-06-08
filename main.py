@@ -8,6 +8,7 @@ class Minecraft:
         # initialize pygame modules
         pg.init()
         self.WIND_SIZE = (800, 450)
+        self.FPS = 60
 
         # intialize OpenGL screen (context) for rendering
         # pg.OPENGL: makes a display that can render OpenGL
@@ -48,8 +49,9 @@ class Minecraft:
                 #     x, y = pg.mouse.get_pos()
                 #     print(x, y)
             self.render()
-            self.delta_time = self.clock.tick(60) * 0.001
+            self.delta_time = self.clock.tick(self.FPS) * 0.002
             self.time = pg.time.get_ticks() * 0.001
+            pg.display.set_caption(str(self.clock.get_fps()))
 
 if __name__ == '__main__':
     minecraft = Minecraft()

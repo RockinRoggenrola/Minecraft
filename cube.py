@@ -1,6 +1,7 @@
 import numpy as np
 import pygame as pg
 import glm
+from camera import Camera
 
 class Cube:
     def __init__(self, texture_name, main, pos):
@@ -24,13 +25,14 @@ class Cube:
         self.shader_program['model_matrix'].write(self.model_matrix)
         
         self.shader_program['block_texture'] = 0
+    
         self.texture.use()
         
 
     def vertice_data(self):
         # change the vertice_data to what we get after all the projections, as this code just uses GPU to display code with shaders
-        vertices = [(-1, -1, 1), (1, -1, 1), (1, 1, 1), (-1, 1, 1),
-                    (-1, 1, -1), (-1, -1, -1), (1, -1, -1), (1, 1, -1)]   
+        vertices = [(-0.5, -0.5, 0.5), (0.5, -0.5, 0.5), (0.5, 0.5, 0.5), (-0.5, 0.5, 0.5),
+                    (-0.5, 0.5, -0.5), (-0.5, -0.5, -0.5), (0.5, -0.5, -0.5), (0.5, 0.5, -0.5)]   
         # we divide the cube into triangles and render each triangle
         # 0-7 = indices for each cube, create triangles, numbering the vertices counterclockwise
         triangle_indices = [(0, 2, 3), (0, 1, 2),
@@ -92,6 +94,8 @@ class Cube:
         # texture.fill('red')
         texture = pg.transform.flip(texture, False, True)
         texture = self.context.texture(texture.get_size(), 3, pg.image.tobytes(texture, 'RGB'))
+        texture.build_mipmaps()
+        texture.anisotropy = 16.0
         return texture
 
     def model_matrix(self):
