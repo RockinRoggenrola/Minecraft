@@ -1,5 +1,5 @@
-import glm
 import pygame as pg
+import glm
 
 class Camera:
     def __init__(self, main):
@@ -10,35 +10,53 @@ class Camera:
         self.FAR_PLANE = 100
         self.SENSITIVITY = 0.5
         self.pos = glm.vec3(2, 2, 3)
+        self.jump_sequence = 0
         
         # vectors for camera movements
-        self.up = glm.vec3(0, 1, 0)
-        self.right = glm.vec3(1, 0, 0)
-        self.forward = glm.vec3(0, 0 ,-1) # positive z axis is towards you
+        self.head_up = glm.vec3(0, 1, 0)
+        self.head_right = glm.vec3(1, 0, 0)
+        self.head_forward = glm.vec3(0, 0 ,-1) # positive z axis is towards you
+        self.chest_up = glm.vec3(0, 0, 0)
+        self.chest_right = glm.vec3(1, 0, 0)
+        self.chest_forward = glm.vec3(0, 0, -1)
         self.movement_speed = 20
 
         self.yaw = 0
         self.pitch = 0
 
-        self.view_matrix = glm.lookAt(self.pos, glm.vec3(0, 0, 0), self.up)
+        self.view_matrix = glm.lookAt(self.pos, glm.vec3(0, 0, 0), self.head_up)
         self.proj_matrix = glm.perspective(glm.radians(self.FOV), self.ASPECT_RATIO, self.NEAR_PLANE, self.FAR_PLANE)
     
     def move(self):
         camera_speed = self.movement_speed * self.main.delta_time
         keys = pg.key.get_pressed()
         if keys[pg.K_w]:
-            self.pos += self.forward * camera_speed
+            self.pos += self.chest_forward * camera_speed
         if keys[pg.K_a]:
-            self.pos -= self.right * camera_speed
+            self.pos -= self.chest_right * camera_speed
         if keys[pg.K_s]:
-            self.pos -= self.forward * camera_speed
+            self.pos -= self.chest_forward * camera_speed
         if keys[pg.K_d]:
-            self.pos += self.right * camera_speed
-        if keys[pg.K_SPACE]:
-            self.pos += self.up * camera_speed
+            self.pos += self.chest_right * camera_speed
+        #if keys[pg.K_SPACE]:
+        #   self.pos += self.head_up * camera_speed
         if keys[pg.K_LSHIFT]:
-            self.pos -= self.up * camera_speed
-        self.view_matrix = glm.lookAt(self.pos, self.pos + self.forward, self.up)
+            self.pos -= self.head_up * camera_speed
+        self.view_matrix = glm.lookAt(self.pos, self.pos + self.head_forward, self.head_up)
+
+    def jump(self):
+        keys = pg.key.get_pressed()
+        if self.jump_sequence > 0 and self.jump_sequence < 5:
+            self.pos.y += 0.1*self.jump_sequence + 0.1
+            self.jump_sequence += 1
+        elif self.jump_sequence > 0 and self.jump_sequence < 10:
+            self.pos.y -= -0.1*self.jump_sequence + 1
+            self.jump_sequence += 1
+        elif self.jump_sequence == 10:
+            self.jump_sequence = 0
+        elif keys[pg.K_SPACE]:
+            self.jump_sequence = 1
+            self.pos.y += 0.1
     
     def rotate(self):
         delta_x, delta_y = pg.mouse.get_rel()
@@ -50,6 +68,7 @@ class Camera:
             self.pitch = -89
 
     def update(self):
+        self.jump()
         self.move()
         self.rotate()
 
@@ -59,12 +78,14 @@ class Camera:
         direction.x = glm.cos(yaw) * glm.cos(pitch)
         direction.y = glm.sin(pitch)
         direction.z = glm.sin(yaw) * glm.cos(pitch)
-        self.forward = glm.normalize(direction) 
-        self.right = glm.normalize(glm.cross(self.forward, glm.vec3(0, 1, 0)))
-        self.up = glm.normalize(glm.cross(self.right, self.forward))
-
-
-        self.view_matrix = glm.lookAt(self.pos, self.pos + self.forward, self.up)
+        self.head_forward = glm.normalize(direction) 
+        self.head_right = glm.normalize(glm.cross(self.head_forward, glm.vec3(0, 1, 0)))
+        self.head_up = glm.normalize(glm.cross(self.head_right, self.head_forward))
+        self.chest_forward = glm.normalize(glm.vec3(direction.x, 0, direction.z))
+        self.chest_right = self.head_right
+        self.chest_up = self.head_up
+        
+        self.view_matrix = glm.lookAt(self.pos, self.pos + self.head_forward, self.head_up)
 
 
 
