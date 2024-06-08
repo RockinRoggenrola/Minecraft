@@ -10,6 +10,10 @@ class Minecraft:
         self.WIND_SIZE = (800, 450)
         self.FPS = 60
 
+        self.world_length =  16
+        self.world_width = 16
+        self.world_height = 16
+
         # intialize OpenGL screen (context) for rendering
         # pg.OPENGL: makes a display that can render OpenGL
         # double buffering: two "buffers" (block of memory), one is used for drawing, and the 

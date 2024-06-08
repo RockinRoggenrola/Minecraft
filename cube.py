@@ -4,7 +4,7 @@ import glm
 from camera import Camera
 
 class Cube:
-    def __init__(self, texture_name, main, pos):
+    def __init__(self, texture_name, main, pos, visible_faces):
         self.camera = Camera(main)
         self.texture_name = texture_name
         self.main = main
@@ -17,41 +17,37 @@ class Cube:
         # fragments, and for each fragment the fragment shader is used to determine each
         # fragments' color. Then fragments undergo tests that make it a pixel and that pixel
         # is outputted to the FrameBuffer (rendering display)
-        self.vbo = self.vertex_buffer_object(self.vertice_data())
-        
 
-        self.shader_program = self.shaders('default')
+        self.visible_faces = visible_faces
+        self.vertice_data = self.vertice_data()
+        self.visible = False
 
-        self.vao = self.vertex_array_object()
+        if len(self.vertice_data) != 0:
+            self.visible = True
+            self.vbo = self.vertex_buffer_object(self.vertice_data)
+            self.shader_program = self.shaders('default')
+            self.vao = self.vertex_array_object()
+            self.cube_texture = self.texture()
         
-        self.cube_texture = self.texture()
+            self.model_matrix = self.model_matrix()
+            self.shader_program['model_matrix'].write(self.model_matrix)
         
-        self.model_matrix = self.model_matrix()
-        self.shader_program['model_matrix'].write(self.model_matrix)
-        
-        self.shader_program['block_texture'] = 0
-        self.cube_texture.use()
-        
+            self.shader_program['block_texture'] = 0
+            self.cube_texture.use()
 
     def vertice_data(self):
         # change the vertice_data to what we get after all the projections, as this code just uses GPU to display code with shaders
-        vertices = [(-1, -1, 1), (1, -1, 1), (1, 1, 1), (-1, 1, 1),
-                    (-1, 1, -1), (-1, -1, -1), (1, -1, -1), (1, 1, -1)]   
+        vertices = [(-0.5, -0.5, 0.5), (0.5, -0.5, 0.5), (0.5, 0.5, 0.5), (-0.5, 0.5, 0.5),
+                    (-0.5, 0.5, -0.5), (-0.5, -0.5, -0.5), (0.5, -0.5, -0.5), (0.5, 0.5, -0.5)]   
         # we divide the cube into triangles and render each triangle
         # 0-7 = indices for each cube, create triangles, numbering the vertices counterclockwise
-        triangle_indices = [(0, 2, 3), (0, 1, 2),
-                            (1, 7, 2), (1, 6, 7),
-                            (6, 5, 4), (4, 7, 6),
-                            (3, 4, 5), (3, 5, 0),
-                            (3, 7, 4), (3, 2, 7),   
-                            (0, 6, 1), (0, 5, 6)]
-        vertice_data = []
-        for triangle in triangle_indices:
-            for index in triangle:
-                vertice_data.append(vertices[index])
-        vertice_data = np.array(vertice_data, dtype = 'f4')
-      
-
+        triangle_indices = [(0, 2, 3), (0, 1, 2), # front
+                            (1, 7, 2), (1, 6, 7), # right
+                            (6, 5, 4), (4, 7, 6), # back
+                            (3, 4, 5), (3, 5, 0), # left
+                            (3, 7, 4), (3, 2, 7), # top
+                            (0, 6, 1), (0, 5, 6)] # bottom
+        
         texture_coords = [(0, 0), (1, 0), (1, 1), (0, 1)]
         # describe each triangle in cube using texture coords
         texture_indices = [(0, 2, 3), (0, 1, 2),
@@ -60,14 +56,38 @@ class Cube:
                            (2, 3, 0), (2, 0, 1),
                            (0, 2, 3), (0, 1, 2),
                            (3, 1, 2), (3, 0, 1)]
-        texture_coords_data = []
-        for triangle in texture_indices:
+        
+        visible_vertices_indices = []
+        visible_texture_indices = []
+
+        for i in range(6):
+            key = self.pos + (i,)
+            if self.visible_faces.get(key) != None:
+                if self.visible_faces[key] == 1:
+                    visible_vertices_indices.append(triangle_indices[2*i])
+                    visible_vertices_indices.append(triangle_indices[2*i+1])
+                    
+                    visible_texture_indices.append(texture_indices[2*i])
+                    visible_texture_indices.append(texture_indices[2*i+1])
+
+        visible_vertices_data = []
+        visible_texture_coords_data = []
+        
+        for triangle in visible_vertices_indices:
             for index in triangle:
-                texture_coords_data.append(texture_coords[index])
-        texture_coords_data = np.array(texture_coords_data, dtype = 'f4')
+                visible_vertices_data.append(vertices[index])
+            
+        visible_vertices_data = np.array(visible_vertices_data, dtype = 'f4')
+
+        for triangle in visible_texture_indices:
+            for index in triangle:
+                visible_texture_coords_data.append(texture_coords[index])
+        visible_texture_coords_data = np.array(visible_texture_coords_data, dtype = 'f4')
+
         # combine text data and vertice data
-        vertice_data = np.hstack([vertice_data, texture_coords_data])
-        return vertice_data
+        visible_vertices_data = np.hstack([visible_vertices_data, visible_texture_coords_data])
+
+        return visible_vertices_data
     
     def vertex_buffer_object(self, data):
         vertice_data = data

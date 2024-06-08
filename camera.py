@@ -9,7 +9,7 @@ class Camera:
         self.NEAR_PLANE = 0.1
         self.FAR_PLANE = 50
         self.SENSITIVITY = 0.5
-        self.pos = glm.vec3(0, 4, 0)
+        self.pos = glm.vec3(0, 20, 0)
         self.jump_sequence = 0
         self.jump_up_down_speed = 0.025
         self.jump_up_down_time = 15
