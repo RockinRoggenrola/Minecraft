@@ -9,10 +9,10 @@ class Camera:
         self.NEAR_PLANE = 0.1
         self.FAR_PLANE = 50
         self.SENSITIVITY = 0.5
-        self.pos = glm.vec3(0, 2.5, 0)
+        self.pos = glm.vec3(0, 4, 0)
         self.jump_sequence = 0
-        self.jump_up_down_speed = 0.075
-        self.jump_up_down_time = 10
+        self.jump_up_down_speed = 0.025
+        self.jump_up_down_time = 15
         
         # vectors for camera movements
         self.head_up = glm.vec3(0, 1, 0)
@@ -21,7 +21,7 @@ class Camera:
         self.chest_up = glm.vec3(0, 0, 0)
         self.chest_right = glm.vec3(1, 0, 0)
         self.chest_forward = glm.vec3(0, 0, -1)
-        self.movement_speed = 4.317
+        self.movement_speed = 4.317*2
 
         self.yaw = 0
         self.pitch = 0
@@ -47,7 +47,6 @@ class Camera:
         self.view_matrix = glm.lookAt(self.pos, self.pos + self.head_forward, self.head_up)
 
     def jump(self):
-
         keys = pg.key.get_pressed()
         if self.jump_sequence > 0 and self.jump_sequence < self.jump_up_down_time:
             self.pos.y += self.jump_up_down_speed*(self.jump_sequence+1)

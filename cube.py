@@ -5,9 +5,11 @@ from camera import Camera
 
 class Cube:
     def __init__(self, texture_name, main, pos):
+        self.camera = Camera(main)
+        self.texture_name = texture_name
         self.main = main
         self.context = main.context
-        self.texture_name = texture_name
+        self.pos = pos
         # openGL rendering pipline: pipline recieves info about the vertices, 
         # vertice shader processes each vertice. Vertices passed to primitive assembly, 
         # where assembly is carried out based on vertex connectivity info (what vertex 
@@ -15,24 +17,26 @@ class Cube:
         # fragments, and for each fragment the fragment shader is used to determine each
         # fragments' color. Then fragments undergo tests that make it a pixel and that pixel
         # is outputted to the FrameBuffer (rendering display)
-        self.vbo = self.vertex_buffer_object()  
+        self.vbo = self.vertex_buffer_object(self.vertice_data())
+        
+
         self.shader_program = self.shaders('default')
+
         self.vao = self.vertex_array_object()
-        self.texture = self.texture()
-    
-        self.pos = pos
+        
+        self.cube_texture = self.texture()
+        
         self.model_matrix = self.model_matrix()
         self.shader_program['model_matrix'].write(self.model_matrix)
         
         self.shader_program['block_texture'] = 0
-    
-        self.texture.use()
+        self.cube_texture.use()
         
 
     def vertice_data(self):
         # change the vertice_data to what we get after all the projections, as this code just uses GPU to display code with shaders
-        vertices = [(-0.5, -0.5, 0.5), (0.5, -0.5, 0.5), (0.5, 0.5, 0.5), (-0.5, 0.5, 0.5),
-                    (-0.5, 0.5, -0.5), (-0.5, -0.5, -0.5), (0.5, -0.5, -0.5), (0.5, 0.5, -0.5)]   
+        vertices = [(-1, -1, 1), (1, -1, 1), (1, 1, 1), (-1, 1, 1),
+                    (-1, 1, -1), (-1, -1, -1), (1, -1, -1), (1, 1, -1)]   
         # we divide the cube into triangles and render each triangle
         # 0-7 = indices for each cube, create triangles, numbering the vertices counterclockwise
         triangle_indices = [(0, 2, 3), (0, 1, 2),
@@ -65,10 +69,10 @@ class Cube:
         vertice_data = np.hstack([vertice_data, texture_coords_data])
         return vertice_data
     
-    def vertex_buffer_object(self):
-        vertice_data = self.vertice_data()
+    def vertex_buffer_object(self, data):
+        vertice_data = data
         # send vertex data from CPU to GPU using a vertex buffer object (holds all attributes (raw data) of each vertex)
-        vbo = self.context.buffer(vertice_data)
+        vbo = self.context.buffer(data)
         return vbo
     
     def shaders(self, shader_name): # vertex shader transforms the vertices from model space(original coord sys) to clip space (coord system of the camera)
@@ -84,9 +88,9 @@ class Cube:
         return shader_program
     
     def vertex_array_object(self): # describes how the buffer is read by a shader program (stores the format of the vertex data for the graphics card, how he data is laid out in memory)
-        vao = self.context.vertex_array(self.shader_program, [(self.vbo, '3f 2f', 'cube_position' ,'text_coords')]) # in the buffer each vertex is assigned 3 float numbers(x,y,z), these 3 numbers correspond to the input attribute in_position
+        vao = self.context.vertex_array(self.shader_program, [(self.vbo, '3f 2f', 'vertex_position' ,'text_coords')]) # in the buffer each vertex is assigned 3 float numbers(x,y,z), these 3 numbers correspond to the input attribute in_position
         return vao
-    
+
     def texture(self):
         texture_path = 'textures/{texture_name}.png'
         texture_path = texture_path.format(texture_name = self.texture_name)
@@ -104,8 +108,8 @@ class Cube:
         return model_matrix
 
     def update(self):
-        # model_matrix = glm.rotate(self.model_matrix, self.cubes.time, glm.vec3(0, 1, 0))
         self.shader_program['model_matrix'].write(self.model_matrix)
+        # model_matrix = glm.rotate(self.model_matrix, self.cubes.time, glm.vec3(0, 1, 0))
         
     def render(self):
         self.update()
@@ -115,7 +119,7 @@ class Cube:
         self.vbo.release()
         self.shader_program.release()
         self.vao.release()
-        self.texture.release()
+        self.cube_texture.release()
 
 
 

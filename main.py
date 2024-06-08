@@ -22,6 +22,7 @@ class Minecraft:
         # detect the context we made and use it
         self.context = mgl.create_context()
         self.context.enable(mgl.DEPTH_TEST | mgl.CULL_FACE)
+        self.context.depth_func = '<='
 
         self.clock = pg.time.Clock()
         self.time = 0
